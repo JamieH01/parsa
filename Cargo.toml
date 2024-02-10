@@ -1,5 +1,5 @@
 [package]
-name = "parsa"https://steamcommunity.com/groups/furry
+name = "parsa"
 description = "a functional combinator parsing library"
 version = "0.1.0"
 edition = "2021"
