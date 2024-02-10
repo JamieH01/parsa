@@ -11,7 +11,7 @@ readme = "readme.md"
 
 [features]
 default = ["builtins"]
-builtins = ["error-macro", "deps:num-traits"]
+builtins = ["error-macro", "num-traits"]
 error-macro = ["dep:thiserror"]
 
 [dependencies]

@@ -135,7 +135,7 @@ enum IntErr<E> {
     #[error("")]
     Word(#[from] WordErr), 
     #[error("")]
-    Parse(#[from] E)
+    Parse(E)
 }
 fn int<I: num_traits::PrimInt + FromStr>() {
      
