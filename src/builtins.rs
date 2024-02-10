@@ -131,14 +131,64 @@ pub enum TakeErr {
 
 ///Indicates that an [`int`] parser has failed.
 #[derive(Debug, Clone, Copy, Error, FromNever)]
-enum IntErr<E> {
-    #[error("")]
+pub enum IntErr<E: std::error::Error> {
+    #[error("{0}")]
     Word(#[from] WordErr), 
-    #[error("")]
+    #[error("error parsing int: {0}")]
     Parse(E)
 }
-fn int<I: num_traits::PrimInt + FromStr>() {
-     
+/**Parses a [`word`] into an integer.
+```
+# use parsa::ParserString;
+# use parsa::Parser;
+# use parsa::builtins::int;
+let mut input = ParserString::from("123");
+
+let num = int::<i32, _>(&mut input);
+assert!(num.is_ok_and(|i| i == 123));
+```
+*/
+pub fn int<I, E>(s: &mut ParserString) -> Result<I, IntErr<E>> 
+where I: num_traits::PrimInt + FromStr<Err = E> + 'static, E: std::error::Error + 'static
+{
+    word
+    .convert_err::<IntErr<E>>()
+    .and_then(|s| {
+        s.parse::<I>()
+        .map_err(|e| IntErr::Parse(e))
+    })
+    .parse(s)
+}
+
+///Indicates that an [`float`] parser has failed.
+#[derive(Debug, Clone, Copy, Error, FromNever)]
+pub enum FloatErr<E: std::error::Error> {
+    #[error("{0}")]
+    Word(#[from] WordErr), 
+    #[error("error parsing int: {0}")]
+    Parse(E)
+}
+/**Parses a [`word`] into a float.
+```
+# use parsa::ParserString;
+# use parsa::Parser;
+# use parsa::builtins::float;
+let mut input = ParserString::from("123.4");
+
+let num = float::<f32, _>(&mut input);
+assert!(num.is_ok_and(|i| i == 123.4));
+```
+*/
+pub fn float<I, E>(s: &mut ParserString) -> Result<I, FloatErr<E>> 
+where I: num_traits::Float + FromStr<Err = E> + 'static, E: std::error::Error + 'static
+{
+    word
+    .convert_err::<FloatErr<E>>()
+    .and_then(|s| {
+        s.parse::<I>()
+        .map_err(|e| FloatErr::Parse(e))
+    })
+    .parse(s)
 }
 
 
