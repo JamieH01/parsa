@@ -5,7 +5,7 @@ See the [error coercion rules](crate::combinators#error-coercion-rules) for erro
 */
 
 
-use std::convert::Infallible;
+use std::{convert::Infallible, str::FromStr};
 
 use thiserror::Error;
 use nevermore::FromNever;
@@ -58,7 +58,7 @@ pub fn word(s: &mut ParserString) -> Result<String, WordErr> {
 }
 ///Indicates that a [`word`] parser has failed.
 #[derive(Debug, Clone, Copy, Error, FromNever)]
-#[error("")]
+#[error("found no characters")]
 pub struct WordErr;
 
 /**Removes leading whitespace in string, returning the amount. 
@@ -122,10 +122,23 @@ pub fn take(delim: &'static str) -> impl Parser<&'static str, Err = TakeErr> {
 #[derive(Debug, Clone, Copy, Error, FromNever)]
 pub enum TakeErr {
     ///Parser failed because the string ended
-    #[error("")]
+    #[error("ran out of space")]
     NoSpace,
     ///Parser failed because the captured slice didn't match the delimiter
-    #[error("")]
+    #[error("did not match delim")]
     NoMatch,
 }
+
+///Indicates that an [`int`] parser has failed.
+#[derive(Debug, Clone, Copy, Error, FromNever)]
+enum IntErr<E> {
+    #[error("")]
+    Word(#[from] WordErr), 
+    #[error("")]
+    Parse(#[from] E)
+}
+fn int<I: num_traits::PrimInt + FromStr>() {
+     
+}
+
 
