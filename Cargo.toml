@@ -1,8 +1,20 @@
 [package]
-name = "parsa"
+name = "parsa"https://steamcommunity.com/groups/furry
+description = "a functional combinator parsing library"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/JamieH01/parsa"
+keywords = ["parsing", "parser-combinators", "string"]
+categories = ["parsing"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["builtins"]
+builtins = ["error-macro"]
+error-macro = ["dep:thiserror"]
 
 [dependencies]
+# num-traits = {version = "0.2.18", optional = true }
+paste = "1.0.14"
+thiserror = {version = "1.0.56", optional = true }
+nevermore = "0.1.1"

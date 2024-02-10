@@ -1,18 +1,26 @@
 #![warn(missing_docs)]
-
-//! crate-level docs
+#![doc = include_str!("../readme.md")]
 
 mod parser;
-pub use crate::parser::*;
+pub use parser::*;
 
 pub mod combinators;
+#[cfg(feature = "builtins")] 
 pub mod builtins;
 
-mod result;
-pub use crate::result::*;
+///Simple errors.
+#[cfg(feature = "error-macro")]
+pub use thiserror;
+///Implicit [`Infallible`] conversions.
+///
+///[`Infallible`]: std::convert::Infallible
+pub use nevermore;
+
+#[cfg(test)]
+mod tests;
 
 use std::cell::Cell;
-///A shrinking-window read-only string. 
+///A shrinking-window read-only string.
 ///
 ///String slices can be taken from the front, and reset, with zero
 ///allocations or copies.
@@ -30,7 +38,7 @@ impl ParserString {
     ///Splits the string at `n`, shrinking it. Panics if `n` is larger than the remaining slice.
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///
     ///assert_eq!(input.take(3), "abc");
     ///assert_eq!(input.take(3), "123");
@@ -48,14 +56,14 @@ impl ParserString {
     ///Splits the string at `n`, shrinking it. Returns [`None`] if `n` is larger than the remaining slice.
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///assert_eq!(input.try_take(5), Some("abc12"));
     ///assert_eq!(input.try_take(5), None);
     ///
     ///```
     pub fn try_take(&mut self, n: usize) -> Option<&str> {
-        if self.ptr.get()+n >= self.full.len() {
-            return None
+        if self.ptr.get() + n > self.full.len() {
+            return None;
         }
 
         let (front, _) = self.get().split_at(n);
@@ -63,11 +71,10 @@ impl ParserString {
         Some(front)
     }
 
-
     ///Rewinds the string slice `n` spaces. Panics if `n` is larger than the taken space.    
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///
     ///assert_eq!(input.take(3), "abc");
     ///
@@ -87,7 +94,7 @@ impl ParserString {
     ///Set the current start position manually.
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///unsafe { input.set_ptr(3); }
     ///assert_eq!(input.get(), "123");
     ///```
@@ -98,7 +105,7 @@ impl ParserString {
     ///Get a reference to the string slice.
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///let _ = input.take(2);
     ///
     ///assert_eq!(input.get(), "c123");
@@ -110,18 +117,18 @@ impl ParserString {
     ///Get the length of the string.
     ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///let _ = input.take(2);
     ///assert_eq!(input.len(), 4);
     ///```
     pub fn len(&self) -> usize {
-        self.full.len()-self.ptr.get()
+        self.full.len() - self.ptr.get()
     }
 
     ///Get the current start of the string, relative to the "true" start.
-    ///```rust 
+    ///```rust
     ///# use parsa::ParserString;
-    ///let mut input = ParserString::from("abc123"); 
+    ///let mut input = ParserString::from("abc123");
     ///let _ = input.take(2);
     ///assert_eq!(input.start(), 2);
     ///```
@@ -132,70 +139,18 @@ impl ParserString {
 
 impl From<&str> for ParserString {
     fn from(value: &str) -> Self {
-        Self { full: Box::from(value), ptr: Cell::new(0) }
+        Self {
+            full: Box::from(value),
+            ptr: Cell::new(0),
+        }
     }
 }
 
 impl From<String> for ParserString {
     fn from(value: String) -> Self {
-        Self { full: value.into_boxed_str(), ptr: Cell::new(0) }
+        Self {
+            full: value.into_boxed_str(),
+            ptr: Cell::new(0),
+        }
     }
-}
-
-#[macro_export]
-///A macro to emulate `?` on [`ParseResult`]. 
-///
-///Returns the [`Ok`] variant, propogating
-///[`Recoverable`]
-///and [`Unrecoverable`]
-///
-///```rust
-///# use parsa::*;
-///# fn parse<T, U, E>(p1: impl Parser<T, E>, p2: impl Parser<U, E>, s: &mut ParserString) -> ParseResult<(T, U), E> {
-///let a = p_try!(p1.parse(s));
-///let b = p_try!(p2.parse(s));
-///ParseResult::Ok((a, b))
-///# }
-///```
-///
-/// [`Ok`]: ParseResult::Ok
-/// [`Recoverable`]: ParseResult::Recoverable
-/// [`Unrecoverable`]: ParseResult::Recoverable
-macro_rules! p_try {
-    ($expr:expr) => {
-        match $expr {
-            ParseResult::Ok(item) => item,
-            ParseResult::Recoverable(e) => return ParseResult::Recoverable(e),
-            ParseResult::Unrecoverable(e) => return ParseResult::Unrecoverable(e),
-        } 
-    };
-}
-
-#[macro_export]
-///A macro to emulate `?` on [`ParseResult`]. 
-///
-///Returns a [`Result`] with the [`Ok`] and [`Recoverable`]
-///variants, propogating [`Unrecoverable`]
-///```rust
-///# use parsa::*;
-///# fn parse<T: Default, U, E>(p1: impl Parser<T, E>, s: &mut ParserString) -> ParseResult<T, E> {
-///let res = match p_try_recover!(p1.parse(s)) {
-///    Ok(v) => v,
-///    Err(_) => T::default(), //recoverable variant
-///};
-///ParseResult::Ok(res)
-///# }
-///```
-///
-/// [`Ok`]: ParseResult::Ok
-/// [`Recoverable`]: ParseResult::Recoverable
-/// [`Unrecoverable`]: ParseResult::Recoverable
-macro_rules! p_try_recover {
-    ($expr:expr) => {
-        match $expr {
-            ParseResult::Ok(item) => Ok(item),
-            ParseResult::Recoverable(e) => Err(e),
-            ParseResult::Unrecoverable(e) => return ParseResult::Unrecoverable(e),
-        } 
-    };
 }
