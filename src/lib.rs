@@ -8,9 +8,6 @@ pub mod combinators;
 #[cfg(feature = "builtins")] 
 pub mod builtins;
 
-///Simple errors.
-#[cfg(feature = "error-macro")]
-pub use thiserror;
 ///Implicit [`Infallible`] conversions.
 ///
 ///[`Infallible`]: std::convert::Infallible

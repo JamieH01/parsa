@@ -3,12 +3,12 @@ as well as 0-copy string consuption and backtracking.
 See [`Parser`] for info on building parsers, and the examples ahead.
 
 # Examples
-Lets parse the string "var = 123".
+Lets parse the string "var = 123". Note that examples will be using `thiserror` to minimize boilerplate.
 First, our struct and error type:
 ```rust, ignore
 use parsa::{ParserString, Parsable};
 use parsa::builtins::*;
-use parsa::thiserror::Error; //simple errors
+use thiserror::Error; //simple errors
 use parsa::nevermore::FromNever; //From<Infallible> conversion
 use std::num::ParseIntError;
 

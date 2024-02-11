@@ -132,8 +132,10 @@ pub enum TakeErr {
 ///Indicates that an [`int`] parser has failed.
 #[derive(Debug, Clone, Copy, Error, FromNever)]
 pub enum IntErr<E: std::error::Error> {
+    ///Parser failed from a [`WordErr`]
     #[error("{0}")]
     Word(#[from] WordErr), 
+    ///Parser failed from a [`FromStr`] error
     #[error("error parsing int: {0}")]
     Parse(E)
 }
@@ -163,8 +165,10 @@ where I: num_traits::PrimInt + FromStr<Err = E> + 'static, E: std::error::Error 
 ///Indicates that an [`float`] parser has failed.
 #[derive(Debug, Clone, Copy, Error, FromNever)]
 pub enum FloatErr<E: std::error::Error> {
+    ///Parser failed from a [`WordErr`]
     #[error("{0}")]
     Word(#[from] WordErr), 
+    ///Parser failed from a [`FromStr`] error
     #[error("error parsing int: {0}")]
     Parse(E)
 }
