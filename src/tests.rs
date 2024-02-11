@@ -57,3 +57,17 @@ fn display_test() {
     dbg!(&inp);
     println!("{inp}");
 }
+
+#[test]
+fn weird_many_bug() {
+    let mut input = ParserString::from("abc 123");
+
+    assert!(word(&mut input).is_ok_and(|s| s == "abc"));
+    input.take(1);
+    assert!(word(&mut input).is_ok_and(|s| s == "123"));
+
+    let mut input = ParserString::from("abc 123");
+    let vec = word.map(|v| dbg!(v)).after(whitespace.map(|i| dbg!(i)))
+        .many().parse(&mut input).unwrap();
+    assert_eq!(vec, vec!["abc", "123"]);
+}

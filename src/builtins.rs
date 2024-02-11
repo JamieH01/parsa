@@ -39,6 +39,7 @@ let mut input = ParserString::from("abc 123");
 assert!(word(&mut input).is_ok_and(|s| s == "abc"));
 input.take(1);
 assert!(word(&mut input).is_ok_and(|s| s == "123"));
+assert!(word(&mut input).is_err());
 ```
 */
 pub fn word(s: &mut ParserString) -> Result<String, WordErr> {
@@ -73,19 +74,21 @@ implicitly.
 let mut input = ParserString::from("    abc");
 let ctr = whitespace(&mut input).unwrap(); // function can never fail
 assert_eq!(ctr, 4);
+# let ctr = whitespace(&mut input).unwrap(); // function can never fail
+# assert_eq!(input.get(), "abc");
 ```
 */
 pub fn whitespace(s: &mut ParserString) -> Result<usize, Infallible> {
     let mut ctr = 0;
 
-    while let Ok(c) = next(s) { 
+    while let Ok(c) = next.parse(s) { 
         if c != ' ' {
             break
         }
         ctr += 1 
     }
 
-    if ctr > 0 {
+    if !s.get().is_empty() {
         unsafe { s.give(1) }
     }
     Ok(ctr)
