@@ -1,5 +1,6 @@
 Parsa is a functional combinator parsing library. It focuses on consice error handling, modularity, and reusability,
 as well as 0-copy string consuption and backtracking.
+See [`Parser`] for info on building parsers, and the examples ahead.
 
 # Examples
 Lets parse the string "var = 123". Note that examples will be using `thiserror` to minimize boilerplate.
@@ -31,9 +32,9 @@ impl Parsable for Var {
     }
 }
 ```
-The first thing we need to do is parse the name of the variable, which we can do with `word`.
-We also want to get rid of whitespace, so we can use `whitespace` with the 
-`after` combinator, as we dont care about its output.
+The first thing we need to do is parse the name of the variable, which we can do with [`word`](crate::builtins::word).
+We also want to get rid of whitespace, so we can use [`whitespace`](crate::builtins::whitespace) with the 
+[`after`](crate::Parser::after) combinator, as we dont care about its output.
 ```rust, ignore
 let name = word
     .convert_err::<VarErr>() //explicitly set our target error type
@@ -57,7 +58,7 @@ And now we can build our struct!
 ```ignore, rust
 Ok(Var { name, val })
 ```
-And because this function has the correct signature, it can be used with any method in `Parser`.
+And because this function has the correct signature, it can be used with any method in [`Parser`].
 ```ignore, rust
 let vars: Vec<Var> = Var::parse.many().parse(s)?;
 ```

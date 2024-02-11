@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-#![doc = include_str!("../readme.md")]
+#![doc = include_str!("../docs.md")]
 
 mod parser;
 pub use parser::*;
@@ -11,7 +11,7 @@ pub mod builtins;
 ///Implicit [`Infallible`] conversions.
 ///
 ///[`Infallible`]: std::convert::Infallible
-pub use nevermore;
+pub use nevermore::FromNever;
 
 #[cfg(test)]
 mod tests;
@@ -39,11 +39,19 @@ impl ParserString {
     ///
     ///assert_eq!(input.take(3), "abc");
     ///assert_eq!(input.take(3), "123");
+    ///
+    /////valid utf-8
+    ///let mut input = ParserString::from("🗻∈🌏");
+    ///assert_eq!(input.take(2), "🗻∈");
+    ///assert_eq!(input.take(1), "🌏");
     ///```
     pub fn take(&mut self, n: usize) -> &str {
-        let (front, _) = self.get().split_at(n);
+        let offs = self.get().chars()
+            .take(n).map(char::len_utf8).sum();
 
-        update(&self.ptr, |ptr| ptr + n);
+        let (front, _) = self.get().split_at(offs);
+
+        update(&self.ptr, |ptr| ptr + offs);
 
         assert!(self.ptr.get() <= self.full.len());
 
@@ -63,8 +71,11 @@ impl ParserString {
             return None;
         }
 
-        let (front, _) = self.get().split_at(n);
-        update(&self.ptr, |ptr| ptr + n);
+        let offs = self.get().chars()
+            .take(n).map(char::len_utf8).sum();
+
+        let (front, _) = self.get().split_at(offs);
+        update(&self.ptr, |ptr| ptr + offs);
         Some(front)
     }
 
@@ -81,6 +92,7 @@ impl ParserString {
     ///assert_eq!(input.take(3), "123");
     ///```
     ///# Safety
+    ///Caller must assure that the resulting pointer lands on a UTF-8 code point.
     ///This library assumes that a function will never add back more than its taken, and thus is
     ///considered undefined behavior. This will never cause memory-unsafety, but can cause
     ///unpredictable things to happen.
@@ -89,6 +101,8 @@ impl ParserString {
     }
 
     ///Set the current start position manually.
+    ///# Safety
+    ///Caller must assure that the resulting pointer lands on a UTF-8 code point.
     ///```rust
     ///# use parsa::ParserString;
     ///let mut input = ParserString::from("abc123");

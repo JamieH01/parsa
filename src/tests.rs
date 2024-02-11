@@ -37,8 +37,16 @@ impl Parsable for Var {
 }
 
 #[test]
-fn var_parse_test() {
+fn var_parse() {
     let mut inp = ParserString::from("val = 123");
     let res = Var::parse(&mut inp).unwrap();
     assert_eq!(Var { name: "val".to_owned(), val: 123 }, res);
+}
+
+#[test]
+fn utf8() {
+    let input = "🗻∈🌏";
+    let mut pstring = ParserString::from(input);
+    assert_eq!(pstring.get(), input);
+    assert_eq!(pstring.take(1), "🗻");
 }
