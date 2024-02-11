@@ -1,5 +1,5 @@
-Parsa is a functional combinator parsing library. It focuses on consice error handling, modularity, and reusability,
-as well as 0-copy string consuption and backtracking.
+Parsa is a functional combinator parsing library. It focuses on concise error handling, modularity, and reusability,
+as well as 0-copy string consumption and backtracking.
 See [`Parser`] for info on building parsers, and the examples ahead.
 
 # Examples
