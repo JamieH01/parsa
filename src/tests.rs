@@ -50,3 +50,10 @@ fn utf8() {
     assert_eq!(pstring.get(), input);
     assert_eq!(pstring.take(1), "🗻");
 }
+
+#[test]
+fn display_test() {
+    let inp = ParserString::from("val = 123");
+    dbg!(&inp);
+    println!("{inp}");
+}

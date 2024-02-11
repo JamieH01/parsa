@@ -16,7 +16,7 @@ pub use nevermore::FromNever;
 #[cfg(test)]
 mod tests;
 
-use std::cell::Cell;
+use std::{cell::Cell, fmt::{Debug, Display}};
 ///A shrinking-window read-only string.
 ///
 ///String slices can be taken from the front, and reset, with zero
@@ -163,5 +163,17 @@ impl From<String> for ParserString {
             full: value.into_boxed_str(),
             ptr: Cell::new(0),
         }
+    }
+}
+
+impl Debug for ParserString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.get())
+    }
+}
+
+impl Display for ParserString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.get())
     }
 }
