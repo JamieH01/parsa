@@ -52,6 +52,11 @@ pub trait Parser<T>: Sized {
         Many<T, Self>,
         (self, )
     }
+    delegate! {
+        []
+        Many1<T, Self>,
+        (self, )
+    }
 
     ///Apply a function to the output of this parser on success.
     fn map<U: 'static>(self, f: impl Fn(T) -> U + 'static) -> impl Parser<U, Err = Self::Err> {

@@ -212,3 +212,51 @@ where
         Ok(out)
     }
 }
+
+/**
+Repeatedly applies a parser, until it fails. Unlike [`Many`], this parser errors if the first run errors.
+
+```
+# use parsa::builtins::{word, WordErr, whitespace};
+# use parsa::{ParserString, Parser};
+let mut input = ParserString::from("ab cd ef gh");
+let words = word.after(whitespace).many1().parse(&mut input).unwrap();
+assert_eq!(words, vec!["ab", "cd", "ef", "gh"]);
+
+//parser will fail on first attempt
+let words = word.after(whitespace).many1().parse(&mut input);
+assert!(words.is_err());
+```
+*/
+pub struct Many1<T, P> 
+where 
+    P: Parser<T>
+{
+    p: P,
+    t: PhantomData<T>
+}
+
+impl<T, P> Many1<T, P>
+where 
+    P: Parser<T>
+{
+    ///Constructs this parser.
+    pub fn new(p: P) -> Self { Self { p, t: PhantomData } }
+}
+
+impl<T, P> Parser<Vec<T>> for Many1<T, P>
+where 
+    P: Parser<T>
+{
+    type Err = P::Err;
+
+    fn parse(&self, s: &mut ParserString) -> Result<Vec<T>, Self::Err> {
+        let mut out = vec![self.p.parse(s)?];
+
+        while let Ok(v) = self.p.try_parse(s) {
+            out.push(v)
+        }
+
+        Ok(out)
+    }
+}
