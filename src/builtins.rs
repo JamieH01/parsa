@@ -195,4 +195,36 @@ where I: num_traits::Float + FromStr<Err = E> + 'static, E: std::error::Error + 
     .parse(s)
 }
 
+///Indicates that a [`between`] parser has failed.
+#[derive(Debug, Clone, Copy, Error, FromNever)]
+pub enum BetweenErr {
+    ///Parser failed because the opener was not found
+    #[error("opener was not found")] 
+    NoOpen,
+    ///Parser failed because the closer was not found
+    #[error("string ended before closer was found")] 
+    Unmatched,
+}
+/**Takes a segment between a given opener and closer.
+```
+# use parsa::ParserString;
+# use parsa::Parser;
+# use parsa::builtins::{next, between};
+let mut input = ParserString::from("(abc) ");
+let middle = between("(", ")").parse(&mut input);
+assert!(middle.is_ok_and(|s| s == "abc"));
+# assert!(next(&mut input).is_ok_and(|c| c == ' '));
+```
+*/
+pub fn between(open: &'static str, close: &'static str) -> impl Parser<String, Err = BetweenErr> {
+    move |s: &mut ParserString| {
+        let _ = take(open).map_err(|_| BetweenErr::NoOpen).parse(s)?;
+        let mut out = String::with_capacity(s.len());
+        
+        while take(close).try_parse(s).is_err() {
+            out.push(next(s).map_err(|_| BetweenErr::Unmatched)?);
+        }
 
+        Ok(out)
+    }
+}
